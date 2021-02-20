@@ -37,8 +37,9 @@ class Scanner
 
 	void scanFile();
 	Lex::LexStatus isCorrect(const char ch);
+	int normalize(int iError, int globalIndex, int lastLexIndex);
 public: 
-	Scanner(std::string File) :sourseFile(File) {};
+	void setScanFile(std::string File) { sourseFile = File; scanFile(); };
 	Scanner();
 
 	Lex getLexem();

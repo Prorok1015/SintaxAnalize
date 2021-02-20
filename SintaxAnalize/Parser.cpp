@@ -7,7 +7,7 @@ void Parser::A()
 	{
 		lastLexStatus = currentLexem.status;
 	}
-	setMachineStatus(currentLexem.status);
+
 }
 
 void Parser::B()
@@ -16,53 +16,83 @@ void Parser::B()
 	{
 		lastLexStatus = currentLexem.status;
 	}
-	setMachineStatus(currentLexem.status);
+	
 }
 
 void Parser::C()
 {
-	if (currentLexem.status != lastLexStatus)
+	/*if (currentLexem.status != lastLexStatus)
 	{
 		lastLexStatus = currentLexem.status;
 	}
-	setMachineStatus(currentLexem.status);
+	setMachineStatus(currentLexem.status);*/
+
+	std::cout << std::endl;
 }
 
 void Parser::E()
 {
-	if (currentLexem.status == Lex::LexStatus::error && currentLexem.status != lastLexStatus)
-	{
-		setMachineStatus(Lex::LexStatus::endline);
-
-		std::cout << "error E";
-	}
-
+	//std::cout << "error E";
 }
 
 void Parser::WrongSeq()
 {
-	switch (currentLexem.status)
+	SetColor(12);
+	switch (lastLexStatus)
 	{
-	case Lex::LexStatus::condition: std::cout << "Wrong Condition" << std::endl;
+	case Lex::LexStatus::condition:  std::cout << "<--[Ожидалось слово] ";
 		break;
-	case Lex::LexStatus::lexem: std::cout << "Wrong Lexem" << std::endl;
+	case Lex::LexStatus::lexem: std::cout << "<--[Ожидался знак] ";
+		break;
+	case Lex::LexStatus::endline: std::cout << "<--[Выражение не может кончаться знаком] ";
 		break;
 	}
+	SetColor(15);
 }
 
+/*
+	TODO:Сделать отдельный класс конечного автомата
+*/
 void Parser::setMachineStatus(Lex::LexStatus wieght)
 {
-	if (stateMachineMap[(int)machineState][(int)wieght] != State::NoTurn)
+	machineState = stateMachineMap[(int)machineState][(int)wieght];
+};
+
+void Parser::printLex(Lex lex)
+{
+
+	if (lex.errors.empty())
 	{
-		machineState = stateMachineMap[(int)machineState][(int)wieght];
+		SetColor(15);
+		std::cout << lex.lex << " ";
 	}
 	else
-		machineState = State::NoTurn;
+	{
+/*
+		TODO:            Оптимизировать алгорит              
+*/
+		std::vector<size_t>::iterator iError = lex.errors.begin();
+		for (size_t i = 0; i < lex.lex.length(); ++i)
+		{
+			if (iError != lex.errors.end() && (*iError == i))
+			{
+				SetColor(12);
+				++iError;
+			}
+			else
+				SetColor(15);
+			std::cout << lex.lex[i];
+
+		}
+		SetColor(14);
+		std::cout << "<--[Грамматическая ошибка] "; // , слово может состоять только из символов от 'A' до 'Z'
+		SetColor(15);
+	}
 };
 
 void Parser::analize()
 {
-	currentLexem = scan.getLexem();
+
 	switch (machineState)
 	{
 	case Parser::State::A: A();
@@ -71,13 +101,34 @@ void Parser::analize()
 		break;
 	case Parser::State::C: C(); return;
 		break;
-	case Parser::State::E: E();
+	case Parser::State::E: E(); 
 		break;
-	case Parser::State::WrongSeq: WrongSeq(); return;
+	case Parser::State::WrongSeq: WrongSeq();
 		break;
-	default: return;
+	default: std::cout << std::endl << " Critical ERROR <No Turn>" << std::endl; return;
 		break;
 	}
+
+	printLex(currentLexem);
+
+	setMachineStatus(currentLexem.status);
+	currentLexem = scan.getLexem();
 	analize();
+};
+
+/*
+	TODO: Создать список возможного цвета тектса. Для ясного понимания человеоком.
+*/
+void Parser::SetColor(int ForgC)
+{
+
+	WORD wColor;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+	if (GetConsoleScreenBufferInfo(handle, &csbi))
+	{
+		wColor = (csbi.wAttributes & 0xF0) + (ForgC & 0x0F);
+		SetConsoleTextAttribute(handle, wColor);
+	}
+	return;
 }
-;

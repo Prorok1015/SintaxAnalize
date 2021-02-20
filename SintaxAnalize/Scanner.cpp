@@ -5,7 +5,7 @@ void Scanner::scanFile()
 	if (!sourseFile.empty())
 	{
 		int firstIndex = 0;
-		std::vector<size_t> errorsIndex(10);
+		std::vector<size_t> errorsIndex(0);
 		Lex::LexStatus status = Lex::LexStatus::error;
 		for (size_t index = 0; index <= sourseFile.length(); ++index)
 		{	
@@ -15,6 +15,8 @@ void Scanner::scanFile()
 
 				int countChar = index - firstIndex;
 				Lex l(sourseFile.substr(firstIndex, countChar));
+				for (int i = 0; i != errorsIndex.size(); ++i)
+					errorsIndex[i] = normalize(errorsIndex[i], index, l.lex.size());
 				l.status = status;
 				l.errors = errorsIndex;
 				lexems.push(l);
@@ -40,8 +42,6 @@ void Scanner::scanFile()
 
 Scanner::Scanner()
 {
-	sourseFile = "ABC - BCA + DFG";
-	scanFile();
 }
 
 Lex Scanner::getLexem()
@@ -66,4 +66,12 @@ Lex::LexStatus Scanner::isCorrect(const char ch)
 	}
 
 	return Lex::LexStatus::error;
+}
+
+int Scanner::normalize(int iError, int globalIndex, int lastLexIndex)
+{
+#ifdef DEBUGING
+	std::cout << lastLexIndex - (globalIndex - iError) << " " << std::endl;
+#endif
+	return lastLexIndex - (globalIndex - iError);
 }

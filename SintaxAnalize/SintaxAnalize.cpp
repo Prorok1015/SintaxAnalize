@@ -4,8 +4,11 @@
 int main()
 {
 	setlocale(0, "ru");
+	std::cout << " Введите простое выражение соответствуюзее услувию [[Слово] [Знак] [Слово]]" << std::endl;
+	std::string AnText;
+	std::getline(std::cin, AnText);
 
-	Parser pars;
+	Parser pars(AnText);
 	pars.analize();
 
 	system("PAUSE");
